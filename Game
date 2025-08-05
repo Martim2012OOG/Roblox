@@ -1,0 +1,59 @@
+repeat task.wait() until workspace:FindFirstChild("Scenery") and workspace.Scenery:FindFirstChild("Chests") and workspace.Scenery.Chests:FindFirstChild("ChestObjects")
+
+local ChestObjects = workspace.Scenery.Chests.ChestObjects
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = game.Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Criar GUI
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScreenGui.Name = "ChestTP_GUI"
+
+local ToggleButton = Instance.new("TextButton", ScreenGui)
+ToggleButton.Size = UDim2.new(0, 120, 0, 40)
+ToggleButton.Position = UDim2.new(0, 20, 0, 100)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Text = "Chest TP: OFF"
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 14
+ToggleButton.Visible = true
+ToggleButton.Active = true
+
+local UICorner = Instance.new("UICorner", ToggleButton)
+UICorner.CornerRadius = UDim.new(0, 8)
+
+-- Variáveis de controlo
+local running = false
+local function tweenTo(targetCFrame, duration)
+	local tween = TweenService:Create(HumanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+	tween:Play()
+	tween.Completed:Wait()
+	task.wait(0.5)
+end
+
+-- Função principal
+local function teleportToChests()
+	while running do
+		for _, v in pairs(ChestObjects:GetDescendants()) do
+			if not running then return end
+			if v.Name == "Hitbox" and v:IsA("Part") then
+				HumanoidRootPart.CFrame = CFrame.new(v.Position + Vector3.new(0, 80, 0))
+				tweenTo(v.CFrame, 6)
+			end
+		end
+		task.wait(1)
+	end
+end
+
+-- Botão ON/OFF
+ToggleButton.MouseButton1Click:Connect(function()
+	running = not running
+	if running then
+		ToggleButton.Text = "Chest TP: ON"
+		teleportToChests()
+	else
+		ToggleButton.Text = "Chest TP: OFF"
+	end
+end)
